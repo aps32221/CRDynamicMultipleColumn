@@ -31,7 +31,7 @@ namespace CRDynamicMultipleColumn
                 MessageBox.Show("Please ensure that you have chosen at least 1 item.");
                 return;
             }
-            foreach (string name in cbl_col.CheckedItems)
+            foreach (string name in cbl_col.Items)
             {
                 table.Columns.Add(name);
             }
@@ -54,9 +54,7 @@ namespace CRDynamicMultipleColumn
             //get page width
             int width = rpt.PrintOptions.PageContentWidth - PAGE_MARGIN;
             //we set each columns' weight to 1 here
-            //there are 4 columns
-            //so total weight is 4
-            int totalWeight = 4;
+            int totalWeight = cbl_col.CheckedItems.Count;
 
             //now, we want to remove columns that user isn't select
             //so we get the Enumerator of Section which the Section name is 'Section2' & 'Section3'
@@ -68,10 +66,10 @@ namespace CRDynamicMultipleColumn
             {
                 if (section2Enumerator.Current == null) continue;
                 //remove ReportObjects if the name equals database(or data definition) column name
-                if (!table.Columns.Contains((section2Enumerator.Current as ReportObject).Name.Replace("txt_", "")))
+                if (!cbl_col.CheckedItems.Contains((section2Enumerator.Current as ReportObject).Name.Replace("txt_", "")))
                 {
                     CrystalDecisions.ReportAppServer.ReportDefModel.ISCRReportObject obj = rpt.ReportClientDocument.ReportDefController.ReportObjectController
-                        .GetReportObjectsByKind(CrystalDecisions.ReportAppServer.ReportDefModel.CrReportObjectKindEnum.crReportObjectKindText)[(section2Enumerator.Current as ReportObject).Name];
+                        .GetAllReportObjects()[(section2Enumerator.Current as ReportObject).Name];
                     rpt.ReportClientDocument.ReportDefController.ReportObjectController.Remove(obj);
                 }
             }
@@ -97,8 +95,8 @@ namespace CRDynamicMultipleColumn
             //get Section3 as ReportDefModel.Section, we're able to add LineObject later
             CrystalDecisions.ReportAppServer.ReportDefModel.Section section3 = rpt.ReportClientDocument.ReportDefController.ReportDefinition.FindSectionByName("Section3");
 
-            //
-            int last = 200;
+            //draw line & set columns position
+            int last = 50;
             CrystalDecisions.ReportAppServer.ReportDefModel.LineObject startLine = new CrystalDecisions.ReportAppServer.ReportDefModel.LineObject();
             startLine.LineThickness = 20;
             startLine.LineColor = 0x0;
@@ -112,11 +110,11 @@ namespace CRDynamicMultipleColumn
             startLine.EndSectionName = section3.Name;
             startLine.SectionCode = section3.SectionCode;
             rpt.ReportClientDocument.ReportDefController.ReportObjectController.Add(startLine, section3);
-
-            for (int i = 0; i < table.Columns.Count; i++) {
+            last += 50;
+            for (int i = 0; i < cbl_col.CheckedItems.Count; i++) {
                 int mWidth = width/totalWeight;
-                TextObject mTxt = rpt.ReportDefinition.Sections["Section2"].ReportObjects["txt_" + table.Columns[i].ColumnName] as TextObject;
-                FieldObject mDt = rpt.ReportDefinition.Sections["Section3"].ReportObjects["fd_" + table.Columns[i].ColumnName] as FieldObject;
+                TextObject mTxt = rpt.ReportDefinition.Sections["Section2"].ReportObjects["txt_" + cbl_col.CheckedItems[i]] as TextObject;
+                FieldObject mDt = rpt.ReportDefinition.Sections["Section3"].ReportObjects["fd_" + cbl_col.CheckedItems[i]] as FieldObject;
                 CrystalDecisions.ReportAppServer.ReportDefModel.LineObject mLine = new CrystalDecisions.ReportAppServer.ReportDefModel.LineObject();
                 mLine.LineThickness = 20;
                 mLine.LineColor = 0x0;
